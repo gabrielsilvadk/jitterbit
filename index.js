@@ -33,16 +33,43 @@ const orderSchema = new mongoose.Schema({
 const Order = mongoose.model("Order", orderSchema);
 
 //Routes
+//Create an Order
 app.post("/order", async (req, res) => {
     console.log("Received POST /order with body:", req.body);
     try {
-        const order = new Order(req.body);
+        // Transform the incoming payload to match the Mongoose schema
+        const transformedData = {
+            orderId: req.body.numeroPedido,
+            value: req.body.valorTotal,
+            creationDate: req.body.dataCriacao,
+            items: req.body.items ? req.body.items.map(item => ({
+                productId: item.idItem,
+                quantity: item.quantidadeItem,
+                price: item.valorItem
+            })) : []
+        };
+
+        const order = new Order(transformedData);
         await order.save();
         console.log("Order saved successfully:", order);
         res.status(201).send(order);
     } catch (error) {
         console.error("Error saving order:", error);
         res.status(400).send(error);
+    }
+});
+
+//Get Order by ID
+app.get("/orders/:id", async (req, res) => {
+    try {
+        const order = await Order.findOne({ orderId: req.params.id });
+        if (!order) {
+            return res.status(404).send("Order not found, please make sure that your Order Number Follow this format: v10089016vdb-01");
+        }
+        res.json(order);
+    } catch (error) {
+        console.error("Error fetching order:", error);
+        res.status(500).send(error);
     }
 });
 
