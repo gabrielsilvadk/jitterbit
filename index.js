@@ -1,11 +1,29 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+//secret key for testing purpose
+const JWT_SECRET = "jitterbitsecretkey";
 
 const app = express();
 const port = 3000;
 
 //Middleware
 app.use(express.json());
+const authMiddleware = (req, res, next) => {
+    const token = req.headers['a    uthorization'];
+    if (!token) {
+        return res.status(401).send("Unauthorized");
+    }
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).send("Forbidden");
+        }
+        req.user = user;
+        next();
+    });
+};
 
 //MongoDB connection
 mongoose.connect("mongodb://localhost:27017/orders");
@@ -15,6 +33,14 @@ db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", () => {
     console.log("Connected to MongoDB");
 });
+
+//Users Schema
+const userSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true }
+});
+
+const User = mongoose.model("User", userSchema);
 
 //Order Schema
 const orderSchema = new mongoose.Schema({
@@ -33,6 +59,39 @@ const orderSchema = new mongoose.Schema({
 const Order = mongoose.model("Order", orderSchema);
 
 //Routes
+
+//Register route
+app.post("/register", async (req, res) => {
+    try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const user = new User({ username: req.body.username, password: hashedPassword });
+        await user.save();
+        res.status(201).send("User registered successfully");
+    } catch (error) {
+        console.error("Error registering user:", error);
+        res.status(500).send("Error registering user");
+    }
+});
+
+//Login route
+app.post("/login", async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.body.username });
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+        const isPasswordValid = await bcrypt.compare(req.body.password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).send("Invalid password");
+        }
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
+        res.json({ token });
+    } catch (error) {
+        console.error("Error logging in:", error);
+        res.status(500).send("Error logging in");
+    }
+});
+
 //Create an Order
 app.post("/order", async (req, res) => {
     console.log("Received POST /order with body:", req.body);
