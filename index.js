@@ -59,6 +59,17 @@ app.post("/order", async (req, res) => {
     }
 });
 
+//List all orders
+app.get("/order/list", async (req, res) => {
+    try {
+        const orders = await Order.find().sort({ creationDate: -1 });
+        res.json(orders);
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+        res.status(500).send(error);
+    }
+});
+
 //Get Order by ID
 app.get("/orders/:id", async (req, res) => {
     try {
@@ -76,3 +87,4 @@ app.get("/orders/:id", async (req, res) => {
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });
+
