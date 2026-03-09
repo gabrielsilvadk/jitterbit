@@ -120,3 +120,17 @@ app.put("/orders/:id", async (req, res) => {
         res.status(500).send(error);
     }
 });
+
+//Delete an Order
+app.delete("/order/:id", async (req, res) => {
+    try {
+        const deleteOrder = await Order.findOneAndDelete({ orderId: req.params.id });
+        if (!deleteOrder) {
+            return res.status(404).send("Order not found, please make sure that your Order Number Follow this format: v10089016vdb-01");
+        }
+        res.json(deleteOrder);
+    } catch (error) {
+        console.error("Error deleting order:", error);
+        res.status(500).send(error);
+    }
+});
