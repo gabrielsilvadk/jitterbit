@@ -88,3 +88,35 @@ app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });
 
+//Update an Order   
+app.put("/orders/:id", async (req, res) => {
+    try {
+        // Transform the incoming payload to match the Mongoose schema (same as POST)
+        const transformedData = {};
+
+        if (req.body.numeroPedido) transformedData.orderId = req.body.numeroPedido;
+        if (req.body.valorTotal !== undefined) transformedData.value = req.body.valorTotal;
+        if (req.body.dataCriacao) transformedData.creationDate = req.body.dataCriacao;
+        if (req.body.items) {
+            transformedData.items = req.body.items.map(item => ({
+                productId: item.idItem,
+                quantity: item.quantidadeItem,
+                price: item.valorItem
+            }));
+        }
+
+        const updateOrder = await Order.findOneAndUpdate(
+            { orderId: req.params.id },
+            { $set: transformedData },
+            { new: true }
+        );
+
+        if (!updateOrder) {
+            return res.status(404).send("Order not found, please make sure that your Order Number Follow this format: v10089016vdb-01");
+        }
+        res.json(updateOrder);
+    } catch (error) {
+        console.error("Error updating order:", error);
+        res.status(500).send(error);
+    }
+});
