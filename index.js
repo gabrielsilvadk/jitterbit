@@ -41,7 +41,7 @@ app.post("/order", async (req, res) => {
         const transformedData = {
             orderId: req.body.numeroPedido,
             value: req.body.valorTotal,
-            creationDate: req.body.dataCriacao,
+            creationDate: new Date(req.body.dataCriacao).toISOString,
             items: req.body.items ? req.body.items.map(item => ({
                 productId: item.idItem,
                 quantity: item.quantidadeItem,
@@ -71,7 +71,7 @@ app.get("/order/list", async (req, res) => {
 });
 
 //Get Order by ID
-app.get("/orders/:id", async (req, res) => {
+app.get("/order/:id", async (req, res) => {
     try {
         const order = await Order.findOne({ orderId: req.params.id });
         if (!order) {
@@ -89,14 +89,14 @@ app.listen(port, () => {
 });
 
 //Update an Order   
-app.put("/orders/:id", async (req, res) => {
+app.put("/order/:id", async (req, res) => {
     try {
         // Transform the incoming payload to match the Mongoose schema (same as POST)
         const transformedData = {};
 
         if (req.body.numeroPedido) transformedData.orderId = req.body.numeroPedido;
         if (req.body.valorTotal !== undefined) transformedData.value = req.body.valorTotal;
-        if (req.body.dataCriacao) transformedData.creationDate = req.body.dataCriacao;
+        if (req.body.dataCriacao) transformedData.creationDate = new Date(req.body.dataCriacao).toISOString();
         if (req.body.items) {
             transformedData.items = req.body.items.map(item => ({
                 productId: item.idItem,
