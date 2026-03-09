@@ -1,0 +1,265 @@
+{
+  "info": {
+    "_postman_id": "ad7311f6-0461-48ba-8d36-6fc15d337e8e",
+    "name": "Jitterbit Order API",
+    "description": "# Jitterbit Order Management API\n\nThis is a RESTful API built with **Node.js**, **Express**, and **MongoDB** for managing orders. It allows you to create, read, update, and delete orders, while securely transforming incoming Portuguese JSON payloads into English data models for database storage.\n\nAdditionally, the API has been upgraded with **JSON Web Token (JWT)** authentication to protect the order endpoints, ensuring that only registered and authenticated users can access the data.\n\n---\n\n## 🚀 Quick Start / Configuration\n\n### 1. Requirements\n- [Node.js](https://nodejs.org/) installed\n- A local [MongoDB](https://www.mongodb.com/) instance running on `localhost:27017`\n\n### 2. Installation\nRun the following command to install the required dependencies (`express`, `mongoose`, `bcryptjs`, `jsonwebtoken`):\n```bash\nnpm install\n```\n\n### 3. Running the Server\nStart the API locally by running:\n```bash\nnode index.js\n```\nThe server will start up, and the **Base URL** for all of your requests will be:\n➡️ `http://localhost:3000`\n\n---\n\n## 🔒 Authentication Endpoints\nBefore you can interact with orders, you must create a user and log in to receive an authorization token.\n\n### `POST /register`\nRegisters a new user in the system.\n- **Body:**\n```json\n{\n  \"username\": \"admin\",\n  \"password\": \"mysecretpassword123\"\n}\n```\n\n### `POST /login`\nAuthenticates a user and returns a JWT token.\n- **Body:**\n```json\n{\n  \"username\": \"admin\",\n  \"password\": \"mysecretpassword123\"\n}\n```\n- **Response:**\n```json\n{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}\n```\n\n*Note: You must pass this `token` in the HTTP headers for all Order endpoints:*\n- **Key:** `Authorization`\n- **Value:** `Bearer YOUR_TOKEN_HERE`\n\n---\n\n## 📦 Order Endpoints (Secured)\n*Remember to include the `Authorization` header with your JWT token for all the requests below.*\n\n### `POST /order`\nCreates a newly formatted order in the database. Expects Portuguese property names in the payload, but transforms them into English to match the database Mongoose schema.\n- **Body Example:**\n```json\n{\n  \"numeroPedido\": \"v10089015vdb-01\",\n  \"valorTotal\": 10000,\n  \"dataCriacao\": \"2023-07-19T12:24:11.5299601+00:00\",\n  \"items\": [\n    {\n      \"idItem\": \"2434\",\n      \"quantidadeItem\": 1,\n      \"valorItem\": 1000\n    }\n  ]\n}\n```\n\n### `GET /order/list`\nFetches a list of all orders from the database, sorted from newest to oldest.\n\n### `GET /order/:id`\nRetrieves a specific order based on the custom `orderId` value.\n- **URL Parameter:** The order's `orderId` *(Example: `/order/v10089015vdb-01`)*\n\n### `PUT /order/:id`\nUpdates an existing order. This accepts the same Portuguese payload format as the `POST` route and securely applies the translation logic to update the database values.\n- **URL Parameter:** The order's `orderId` *(Example: `/order/v10089015vdb-01`)*\n\n### `DELETE /order/:id`\nDeletes a specific order from the database entirely.\n- **URL Parameter:** The order's `orderId` *(Example: `/order/v10089015vdb-01`)*",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "27475057"
+  },
+  "item": [
+    {
+      "name": "register",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\": \"test\",\r\n    \"password\": \"123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "register"
+          ]
+        },
+        "description": "## Register User\n\nRegisters a new user in the system by creating an account with the provided credentials.\n\n**Endpoint:** `POST /register`\n\n---\n\n### Request Body\n\nThe request body must be sent as **raw JSON** with the following fields:\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `username` | string | ✅ Yes | The desired username for the new account |\n| `password` | string | ✅ Yes | The password for the new account |\n\n**Example:**\n```json\n{\n  \"username\": \"test\",\n  \"password\": \"123\"\n}\n```\n\n---\n\n### Expected Behavior\n\n- **Success (`2xx`)** — The user account is created successfully. The response may include a confirmation message or the newly created user's details (e.g., user ID, username).\n- **Conflict (`409`)** — A user with the provided `username` already exists.\n- **Bad Request (`400`)** — The request body is missing required fields or contains invalid data.\n\n---\n\n> ⚠️ **Note:** Ensure passwords meet any security requirements enforced by the server (e.g., minimum length, complexity). Avoid sending plain-text passwords in production — use HTTPS to encrypt data in transit."
+      },
+      "response": []
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\": \"test\",\r\n    \"password\": \"123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "login"
+          ]
+        },
+        "description": "## Login\n\nAuthenticates a user and returns an access token (or session) upon successful credential validation.\n\n### Request Body\n\nThe request body must be sent as `application/json` with the following fields:\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| `username` | string | ✅ Yes | The user's account username |\n| `password` | string | ✅ Yes | The user's account password |\n\n**Example:**\n\n``` json\n{\n  \"username\": \"test\",\n  \"password\": \"123\"\n}\n\n ```\n\n### Responses\n\n| Status Code | Description |\n| --- | --- |\n| `200 OK` | Login successful. Returns an access token or session identifier. |\n| `401 Unauthorized` | Invalid credentials. The username or password is incorrect. |\n| `400 Bad Request` | Missing or malformed request body fields. |\n| `500 Internal Server Error` | An unexpected error occurred on the server. |\n\n> 💡 **Tip:** Store the returned token in an environment variable (e.g., `{{authToken}}`) to reuse it in authenticated requests."
+      },
+      "response": []
+    },
+    {
+      "name": "Create order",
+      "request": {
+        "auth": {
+          "type": "jwt",
+          "jwt": [
+            {
+              "key": "secret",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YWYxZjM1ZjdjOGQ2MTdmYzlhNzAxOCIsImlhdCI6MTc3MzA4NDg0NCwiZXhwIjoxNzczMDg4NDQ0fQ.WYXylhoW57Uvr3AAYATwj48PIVmdWT2TbUbCoOr83Gs",
+              "type": "string"
+            },
+            {
+              "key": "algorithm",
+              "value": "HS256",
+              "type": "string"
+            },
+            {
+              "key": "isSecretBase64Encoded",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "key": "payload",
+              "value": "{}",
+              "type": "string"
+            },
+            {
+              "key": "addTokenTo",
+              "value": "header",
+              "type": "string"
+            },
+            {
+              "key": "headerPrefix",
+              "value": "Bearer",
+              "type": "string"
+            },
+            {
+              "key": "queryParamKey",
+              "value": "token",
+              "type": "string"
+            },
+            {
+              "key": "header",
+              "value": "{}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YWYxZjM1ZjdjOGQ2MTdmYzlhNzAxOCIsImlhdCI6MTc3MzA4NDg0NCwiZXhwIjoxNzczMDg4NDQ0fQ.WYXylhoW57Uvr3AAYATwj48PIVmdWT2TbUbCoOr83Gs",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \n\"numeroPedido\": \"v10089015vdb-10\", \n\"valorTotal\": 10000, \n\"dataCriacao\": \"2026-03-09T12:24:11.5299601+00:00\", \n\"items\": [ \n{ \n\"idItem\": \"1010\", \n\"quantidadeItem\": 1, \n\"valorItem\": 1000 \n} \n] \n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/order",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "order"
+          ]
+        },
+        "description": "## Create Order\n\nCreates a new order in the system. This endpoint accepts order details including order number, total value, creation date, and a list of items.\n\n---\n\n## Authentication\n\nThis endpoint requires a valid **JWT Bearer Token** in the `Authorization` header.\n\n```\nAuthorization: Bearer <your_jwt_token>\n```\n\n> Tokens can be obtained via the login endpoint. If the token is missing or invalid, the API will return a `401 Unauthorized` response.\n\n---\n\n## Request\n\n**Method:** `POST`  \n**URL:** `http://localhost:3000/order`\n\n### Headers\n\n| Key             | Value              | Description                        |\n|-----------------|--------------------|------------------------------------|\n| `Content-Type`  | `application/json` | Request body must be JSON          |\n| `Authorization` | `Bearer <token>`   | JWT token for authentication       |\n\n### Body (raw JSON)\n\n```json\n{\n  \"numeroPedido\": \"v10089015vdb-10\",\n  \"valorTotal\": 10000,\n  \"dataCriacao\": \"2026-03-09T12:24:11.5299601+00:00\",\n  \"items\": [\n    {\n      \"idItem\": \"1010\",\n      \"quantidadeItem\": 1,\n      \"valorItem\": 1000\n    }\n  ]\n}\n```\n\n### Body Fields\n\n| Field          | Type     | Required | Description                                                  |\n|----------------|----------|----------|--------------------------------------------------------------|\n| `numeroPedido` | `string` | Yes      | Unique order identifier/number (e.g. `v10089015vdb-10`)      |\n| `valorTotal`   | `number` | Yes      | Total value of the order in the smallest currency unit       |\n| `dataCriacao`  | `string` | Yes      | Order creation date in ISO 8601 format (UTC offset supported)|\n| `items`        | `array`  | Yes      | List of items included in the order                          |\n\n#### Item Object Fields\n\n| Field            | Type     | Required | Description                              |\n|------------------|----------|----------|------------------------------------------|\n| `idItem`         | `string` | Yes      | Unique identifier of the item            |\n| `quantidadeItem` | `number` | Yes      | Quantity of the item ordered             |\n| `valorItem`      | `number` | Yes      | Unit value of the item                   |\n\n---\n\n## Responses\n\n| Status Code | Description                                                                 |\n|-------------|-----------------------------------------------------------------------------|\n| `201 Created` | Order successfully created. Returns the created order object.             |\n| `400 Bad Request` | Invalid or missing required fields in the request body.               |\n| `401 Unauthorized` | Missing, expired, or invalid JWT token.                              |"
+      },
+      "response": []
+    },
+    {
+      "name": "List all orders",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YWYxZjM1ZjdjOGQ2MTdmYzlhNzAxOCIsImlhdCI6MTc3MzA4NTI5NCwiZXhwIjoxNzczMDg4ODk0fQ._axq96PV3_HTwcwCyzO2hR6ljeMh8uCtk2pCtKr9IHE",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/order/list",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "order",
+            "list"
+          ]
+        },
+        "description": "## List All Orders\n\nRetrieves a complete list of all orders stored in the system.\n\n**Method:** `GET`  \n**URL:** `http://localhost:3000/order/list`\n\n---\n\n## Response\n\nReturns a **JSON array** of order objects. Each object represents a single order with its associated items.\n\n**Status Code:** `200 OK`\n\n### Order Object\n\n| Field | Type | Description |\n| --- | --- | --- |\n| `_id` | `string` | MongoDB ObjectId — unique internal identifier for the order |\n| `orderId` | `string` | Human-readable order identifier (e.g. `v10089016vdb-01`) |\n| `value` | `number` | Total monetary value of the order |\n| `creationDate` | `string` | ISO 8601 date string representing when the order was created |\n| `items` | `array` | List of items included in the order (see below) |\n| `__v` | `number` | MongoDB document version key |\n\n### Item Object (inside `items`)\n\n| Field | Type | Description |\n| --- | --- | --- |\n| `_id` | `string` | MongoDB ObjectId — unique identifier for the item entry |\n| `productId` | `string` | Identifier of the product |\n| `quantity` | `number` | Number of units ordered |\n| `price` | `number` | Unit price of the product |\n\n---\n\n## Example Response\n\n``` json\n[\n  {\n    \"_id\": \"69aef884d32b8e896c27a5f3\",\n    \"orderId\": \"v10089016vdb-01\",\n    \"value\": 10000,\n    \"creationDate\": \"2026-03-09T12:24:11.529Z\",\n    \"items\": [\n      {\n        \"productId\": \"1111\",\n        \"quantity\": 1,\n        \"price\": 1000,\n        \"_id\": \"69aef884d32b8e896c27a5f4\"\n      }\n    ],\n    \"__v\": 0\n  },\n  {\n    \"_id\": \"69aef890d32b8e896c27a5f6\",\n    \"orderId\": \"v10089016vdb-02\",\n    \"value\": 20000,\n    \"creationDate\": \"2026-03-09T12:24:11.529Z\",\n    \"items\": [\n      {\n        \"productId\": \"2222\",\n        \"quantity\": 1,\n        \"price\": 2000,\n        \"_id\": \"69aef890d32b8e896c27a5f7\"\n      }\n    ],\n    \"__v\": 0\n  }\n]\n\n ```"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Order by OrderNumber(numeroPedido)",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/order/v10089015vdb-09",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "order",
+            "v10089015vdb-09"
+          ]
+        },
+        "description": "## Get Order by numeroPedido\n\nRetrieves the details of a specific order using the `orderId`(numeroPedido) as a lookup parameter.\n\n## Authentication\n\nThis route is protected. You must provide a valid JWT token in the request header.\n\n- Type: `Bearer Token`\n    \n- Key:`Authorization`\n    \n- Value:`Bearer`\n    \n\n## Path Parameters\n\n| Name | Type | Required | Description |\n| --- | --- | --- | --- |\n| `id` | `string` | Yes | The unique business order number. Expected format: `v10089016vdb-01` |\n\n## Example Response\n\n#### **200 OK**\n\nOrder found successfully.\n\n``` json\n{\n    \"_id\": \"64dab8a0f6b7183237d307f6\",\n    \"orderId\": \"v10089016vdb-01\",\n    \"value\": 10000,\n    \"creationDate\": \"2023-07-19T12:24:11.529Z\",\n    \"items\": [\n        {\n            \"productId\": 2434,\n            \"quantity\": 1,\n            \"price\": 1000,\n            \"_id\": \"64daba7d05bcc674899dc5bf\"\n        }\n    ],\n    \"__v\": 0\n}\n\n ```\n\n|  |\n| --- |"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Order",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \r\n\"numeroPedido\": \"v10089015vdb-09\", \r\n\"valorTotal\": 2000, \r\n\"dataCriacao\": \"2026-03-09T12:24:11.5299601+00:00\", \r\n\"items\": [ \r\n{ \r\n\"idItem\": \"9999\", \r\n\"quantidadeItem\": 2, \r\n\"valorItem\": 1000 \r\n} \r\n] \r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/order/v10089015vdb-08",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "order",
+            "v10089015vdb-08"
+          ]
+        },
+        "description": "## Update an Order\n\nUpdates an existing order by its `orderId`. This endpoint uses **Partial Updates** ($set), meaning you only need to send the fields you wish to change. The system automatically transforms the incoming business fields (e.g., `numeroPedido`, `valorTotal`) into the internal database format.\n\n## Authentication\n\nThis route is protected. You must provide a valid JWT token in the request header.\n\n- Type: `Bearer Token`\n    \n- Key:`Authorization`\n    \n- Value:`Bearer`\n    \n\n## Path Parameters\n\n| Name | Type | Required | Description |\n| --- | --- | --- | --- |\n| `id` | `string` | Yes | The unique business order number. Expected format: `v10089016vdb-01` |\n\n# Request Body(JSON)\n\n``` json\n{\n    \"numeroPedido\": \"v10089016vdb-02\",\n    \"valorTotal\": 15000,\n    \"dataCriacao\": \"2026-03-09T10:00:00Z\",\n    \"items\": [\n        {\n            \"idItem\": 5555,\n            \"quantidadeItem\": 2,\n            \"valorItem\": 500\n        }\n    ]\n}\n\n ```\n\n# Responses\n\n#### **200 OK**\n\nOrder updated successfully. Returns the updated document.\n\n``` json\n{\n    \"_id\": \"64dab8a0f6b7183237d307f6\",\n    \"orderId\": \"v10089016vdb-02\",\n    \"value\": 15000,\n    \"creationDate\": \"2026-03-09T10:00:00.000Z\",\n    \"items\": [\n        {\n            \"productId\": 5555,\n            \"quantity\": 2,\n            \"price\": 500,\n            \"_id\": \"64daba7d05bcc674899dc5bf\"\n        }\n    ],\n    \"__v\": 0\n}\n\n ```\n\n#### **401 Unauthorized**\n\nMissing `Authorization` header.\n\n#### **403 Forbidden**\n\nInvalid or expired JWT token.\n\n#### **404 Not Found**\n\nNo order matches the provided ID.\n\n- **Message:** `Order not found, please make sure that your Order Number Follow this format: v10089016vdb-01`\n    \n\n#### **500 Internal Server Error**\n\nServer-side error during the update process.\n\n### **Developer Note:**\n\nThe API handles data mapping internally:\n\n- `numeroPedido` → `orderId`\n    \n- `valorTotal` → `value`\n    \n- `dataCriacao` → `creationDate` (ISO String)\n    \n- `items` array objects are mapped from `idItem`, `quantidadeItem`, `valorItem` to `productId`, `quantity`, `price`."
+      },
+      "response": []
+    },
+    {
+      "name": "Delete an Order",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/order/v10089015vdb-09",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "order",
+            "v10089015vdb-09"
+          ]
+        },
+        "description": "# Delete an Order\n\nPermanently removes an order from the database using its `orderId`. This action is irreversible.\n\n### **Authentication**\n\nThis route is protected. A valid JWT token is required to perform this operation.\n\n- **Type:** `Bearer Token`\n    \n- **Key:** `Authorization`\n    \n\n## Path Parameters\n\n| Name | Type | Required | Description |\n| --- | --- | --- | --- |\n| `id` | `string` | Yes | The unique business order number. Expected format: `v10089016vdb-01` |\n\n# Responses\n\n#### **200 OK**\n\nOrder updated successfully. Returns the updated document.\n\n``` json\n{\n    \"_id\": \"64dab8a0f6b7183237d307f6\",\n    \"orderId\": \"v10089016vdb-02\",\n    \"value\": 15000,\n    \"creationDate\": \"2026-03-09T10:00:00.000Z\",\n    \"items\": [\n        {\n            \"productId\": 5555,\n            \"quantity\": 2,\n            \"price\": 500,\n            \"_id\": \"64daba7d05bcc674899dc5bf\"\n        }\n    ],\n    \"__v\": 0\n}\n\n ```\n\n#### **401 Unauthorized**\n\nMissing `Authorization` header.\n\n#### **403 Forbidden**\n\nInvalid or expired JWT token.\n\n#### **404 Not Found**\n\nNo order matches the provided ID.\n\n- **Message:** `Order not found, please make sure that your Order Number Follow this format: v10089016vdb-01`\n    \n\n#### **500 Internal Server Error**\n\nServer-side error during the update process."
+      },
+      "response": []
+    }
+  ]
+}
