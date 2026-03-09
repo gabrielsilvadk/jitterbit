@@ -12,10 +12,11 @@ const port = 3000;
 //Middleware
 app.use(express.json());
 const authMiddleware = (req, res, next) => {
-    const token = req.headers['a    uthorization'];
-    if (!token) {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
         return res.status(401).send("Unauthorized");
     }
+    const token = authHeader.split(' ')[1];
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
             return res.status(403).send("Forbidden");
@@ -93,7 +94,7 @@ app.post("/login", async (req, res) => {
 });
 
 //Create an Order
-app.post("/order", async (req, res) => {
+app.post("/order", authMiddleware, async (req, res) => {
     console.log("Received POST /order with body:", req.body);
     try {
         // Transform the incoming payload to match the Mongoose schema
@@ -119,7 +120,7 @@ app.post("/order", async (req, res) => {
 });
 
 //List all orders
-app.get("/order/list", async (req, res) => {
+app.get("/order/list", authMiddleware, async (req, res) => {
     try {
         const orders = await Order.find().sort({ creationDate: -1 });
         res.json(orders);
@@ -130,7 +131,7 @@ app.get("/order/list", async (req, res) => {
 });
 
 //Get Order by ID
-app.get("/order/:id", async (req, res) => {
+app.get("/order/:id", authMiddleware, async (req, res) => {
     try {
         const order = await Order.findOne({ orderId: req.params.id });
         if (!order) {
@@ -148,7 +149,7 @@ app.listen(port, () => {
 });
 
 //Update an Order   
-app.put("/order/:id", async (req, res) => {
+app.put("/order/:id", authMiddleware, async (req, res) => {
     try {
         // Transform the incoming payload to match the Mongoose schema (same as POST)
         const transformedData = {};
@@ -181,7 +182,7 @@ app.put("/order/:id", async (req, res) => {
 });
 
 //Delete an Order
-app.delete("/order/:id", async (req, res) => {
+app.delete("/order/:id", authMiddleware, async (req, res) => {
     try {
         const deleteOrder = await Order.findOneAndDelete({ orderId: req.params.id });
         if (!deleteOrder) {
